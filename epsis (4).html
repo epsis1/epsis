@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EPSIS — Enviro Plus Smart Indoor System</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#020408;
+  --bg2:#080d14;
+  --bg3:#0c1520;
+  --card:#0d1926;
+  --card2:#111f2e;
+  --border:#1a2d42;
+  --border2:#243d57;
+  --cyan:#00e5ff;
+  --cyan2:#00b4cc;
+  --green:#00ff88;
+  --red:#ff3b5c;
+  --orange:#ff8c00;
+  --yellow:#ffd700;
+  --purple:#b06aff;
+  --white:#e8f4ff;
+  --gray:#4a6a8a;
+  --gray2:#2a3d52;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--white);overflow-x:hidden;cursor:none}
+
+/* Custom cursor */
+.cursor{position:fixed;width:8px;height:8px;background:var(--cyan);border-radius:50%;pointer-events:none;z-index:9999;transition:transform .1s;mix-blend-mode:difference}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1px solid var(--cyan);border-radius:50%;pointer-events:none;z-index:9998;transition:all .15s ease;opacity:0.5}
+
+/* Background effects */
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+.bg-glow1{position:fixed;width:800px;height:800px;background:radial-gradient(circle,rgba(0,229,255,.06) 0%,transparent 70%);top:-200px;right:-200px;pointer-events:none;z-index:0}
+.bg-glow2{position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(176,106,255,.04) 0%,transparent 70%);bottom:-100px;left:-100px;pointer-events:none;z-index:0}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 60px;background:rgba(2,4,8,.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{font-size:20px;font-weight:900;letter-spacing:3px;color:var(--cyan);font-family:'JetBrains Mono',monospace}
+.logo span{color:var(--white)}
+.nav-links{display:flex;gap:36px;list-style:none}
+.nav-links a{color:var(--gray);text-decoration:none;font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-badge{background:var(--cyan);color:var(--bg);font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;padding:120px 60px 80px}
+.hero-content{max-width:700px}
+.hero-tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:24px;display:flex;align-items:center;gap:12px;animation:fadeUp .6s ease both}
+.hero-tag::before{content:'';width:30px;height:1px;background:var(--cyan)}
+h1{font-size:clamp(48px,7vw,88px);font-weight:900;line-height:.95;letter-spacing:-3px;animation:fadeUp .7s ease .1s both}
+h1 .line1{color:var(--white)}
+h1 .line2{color:var(--cyan);-webkit-text-stroke:2px var(--cyan);-webkit-text-fill-color:transparent}
+h1 .line3{color:var(--white)}
+.hero-sub{font-size:16px;color:var(--gray);line-height:1.8;max-width:520px;margin:28px 0 40px;font-weight:300;animation:fadeUp .7s ease .2s both}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .7s ease .3s both}
+.btn-primary{background:var(--cyan);color:var(--bg);padding:14px 32px;border-radius:4px;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:all .2s;font-family:'JetBrains Mono',monospace}
+.btn-primary:hover{background:var(--white);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--cyan);border:1px solid var(--border2);padding:14px 32px;border-radius:4px;font-weight:500;font-size:13px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;transition:all .2s}
+.btn-outline:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.hero-right{position:absolute;right:60px;top:50%;transform:translateY(-50%);animation:fadeUp .8s ease .4s both}
+.hero-visual{width:320px;height:420px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;overflow:hidden}
+.hero-visual::before{content:'EPSIS v2.0';position:absolute;top:16px;left:20px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px}
+.hero-visual::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+.hv-sensor{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.hv-sensor:last-child{border-bottom:none}
+.hv-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:1px}
+.hv-val{font-size:18px;font-weight:700;color:var(--cyan)}
+.hv-unit{font-size:10px;color:var(--gray);margin-left:3px}
+.hv-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.5s infinite}
+
+/* STATS BAR */
+.stats-bar{position:relative;z-index:1;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:0}
+.stat-item{background:var(--bg2);padding:28px 20px;text-align:center}
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--cyan)}
+.stat-label{font-size:11px;color:var(--gray);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+
+/* SECTIONS */
+.section{position:relative;z-index:1;padding:100px 60px;max-width:1200px;margin:0 auto}
+.full-section{position:relative;z-index:1;padding:100px 60px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.full-section .inner{max-width:1200px;margin:0 auto}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.sec-tag::before{content:'';width:24px;height:1px;background:var(--cyan)}
+.sec-title{font-size:clamp(32px,4vw,52px);font-weight:800;letter-spacing:-2px;line-height:1.05;margin-bottom:16px}
+.sec-sub{font-size:15px;color:var(--gray);max-width:560px;line-height:1.8;font-weight:300}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;margin-top:60px}
+.desc-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:32px;border-left:3px solid var(--cyan);line-height:1.9;font-size:14px;color:var(--gray);font-weight:300}
+.desc-card strong{color:var(--white);font-weight:600}
+.feature-list{display:flex;flex-direction:column;gap:14px}
+.feature-item{display:flex;gap:16px;align-items:flex-start;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:8px;transition:all .2s}
+.feature-item:hover{border-color:var(--border2);transform:translateX(4px)}
+.fi-icon{width:36px;height:36px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.fi-title{font-weight:600;font-size:14px;margin-bottom:3px;color:var(--white)}
+.fi-desc{font-size:12px;color:var(--gray);line-height:1.6}
+
+/* SENSORS */
+.sensor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:50px}
+.sensor-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px;transition:all .3s;position:relative;overflow:hidden}
+.sensor-card::after{content:'';position:absolute;top:0;left:0;width:0;height:2px;background:var(--cyan);transition:width .3s}
+.sensor-card:hover{border-color:var(--border2);transform:translateY(-4px)}
+.sensor-card:hover::after{width:100%}
+.sc-icon{font-size:24px;margin-bottom:12px}
+.sc-name{font-weight:700;font-size:14px;margin-bottom:4px;color:var(--white);letter-spacing:.5px}
+.sc-model{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);margin-bottom:8px;letter-spacing:1px}
+.sc-desc{font-size:12px;color:var(--gray);line-height:1.6;margin-bottom:10px}
+.sc-func{font-size:11px;color:rgba(0,229,255,.6);line-height:1.5}
+.sc-pin{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+
+/* ALERTS */
+.alert-table{width:100%;border-collapse:collapse;margin-top:36px;font-size:13px}
+.alert-table th{text-align:left;padding:12px 16px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--gray);text-transform:uppercase;font-weight:400}
+.alert-table td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--gray)}
+.alert-table tr:hover td{background:var(--card)}
+.abadge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.ab1{background:rgba(255,59,92,.15);color:var(--red);border:1px solid rgba(255,59,92,.3)}
+.ab2{background:rgba(255,140,0,.15);color:var(--orange);border:1px solid rgba(255,140,0,.3)}
+.ab3{background:rgba(0,229,255,.15);color:var(--cyan);border:1px solid rgba(0,229,255,.3)}
+.ab4{background:rgba(176,106,255,.15);color:var(--purple);border:1px solid rgba(176,106,255,.3)}
+.ab5{background:rgba(0,255,136,.15);color:var(--green);border:1px solid rgba(0,255,136,.3)}
+
+/* LIVE DASHBOARD */
+#dashboard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:36px;margin-top:40px}
+.dash-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.live-indicator{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.5s infinite}
+.ip-form{display:flex;gap:10px}
+.ip-input{background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:10px 16px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:13px;width:200px;outline:none;transition:border-color .2s}
+.ip-input:focus{border-color:var(--cyan)}
+.connect-btn{background:var(--cyan);color:var(--bg);border:none;padding:10px 20px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;font-family:'JetBrains Mono',monospace;transition:all .2s}
+.connect-btn:hover{background:var(--white)}
+
+/* Occupancy card */
+.occ-card{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:28px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden}
+.occ-card::before{content:'OCCUPANCY';position:absolute;top:12px;left:20px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gray)}
+.occ-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+.occ-counts{display:flex;gap:40px;margin-top:8px}
+.occ-num{font-size:44px;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace}
+.occ-lbl{font-size:11px;color:var(--gray);margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+.empty-alert{background:rgba(255,59,92,.1);border:1px solid rgba(255,59,92,.3);color:#ff8096;padding:10px 20px;border-radius:4px;font-size:13px;font-weight:500;font-family:'JetBrains Mono',monospace;display:none}
+.empty-alert.show{display:block}
+
+/* Dashboard grid */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.dash-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:20px;transition:border-color .2s}
+.dash-card:hover{border-color:var(--border2)}
+.dc-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.dc-val{font-size:28px;font-weight:800;line-height:1;font-family:'JetBrains Mono',monospace}
+.dc-unit{font-size:11px;color:var(--gray);margin-top:3px}
+.dc-mm{font-size:10px;color:var(--gray2);margin-top:6px;font-family:'JetBrains Mono',monospace}
+.dc-badge{display:inline-block;margin-top:8px;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.bg-good{background:rgba(0,255,136,.12);color:var(--green);border:1px solid rgba(0,255,136,.25)}
+.bg-mod{background:rgba(255,215,0,.12);color:var(--yellow);border:1px solid rgba(255,215,0,.25)}
+.bg-dng{background:rgba(255,59,92,.12);color:var(--red);border:1px solid rgba(255,59,92,.25)}
+.bg-haz{background:rgba(255,59,92,.2);color:#ff6b6b;border:1px solid rgba(255,59,92,.4)}
+.bg-wrn{background:rgba(255,140,0,.12);color:var(--orange);border:1px solid rgba(255,140,0,.25)}
+.bg-hi{background:rgba(255,59,92,.15);color:var(--red);border:1px solid rgba(255,59,92,.3)}
+.trend-up{color:var(--red);font-size:13px}
+.trend-down{color:var(--green);font-size:13px}
+.trend-stable{color:var(--gray2);font-size:13px}
+.dash-status{text-align:center;padding:24px;color:var(--gray);font-family:'JetBrains Mono',monospace;font-size:13px}
+.uptime-bar{text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray2)}
+
+/* CHARTS */
+.chart-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px}
+.chart-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.chart-wrap{height:160px;position:relative}
+
+/* Alert log */
+.alert-log-section{margin-top:50px}
+.alert-item{display:flex;gap:14px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;align-items:flex-start}
+.ai-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.ai-msg{font-size:13px;color:var(--white);font-weight:500;margin-bottom:2px}
+.ai-val{font-size:12px;color:var(--gray)}
+.ai-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gray2);margin-top:2px}
+.no-alerts{text-align:center;padding:28px;color:var(--gray2);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px}
+
+/* GALLERY */
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:44px}
+.gallery-item{border-radius:8px;overflow:hidden;background:var(--card);border:1px solid var(--border);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative}
+.gallery-item:hover{border-color:var(--border2);transform:scale(1.02)}
+.gallery-item img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--gray2)}
+.gp-icon{font-size:28px;opacity:.4}
+.gp-text{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.4;letter-spacing:1px}
+
+/* CREATOR */
+.creator-card{display:flex;gap:36px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:40px;margin-top:44px;flex-wrap:wrap;position:relative;overflow:hidden}
+.creator-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+.creator-avatar{width:88px;height:88px;border-radius:8px;background:linear-gradient(135deg,var(--cyan2),var(--purple));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;flex-shrink:0;color:var(--bg);font-family:'JetBrains Mono',monospace}
+.creator-name{font-size:24px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.creator-role{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);letter-spacing:1px;margin-bottom:12px}
+.creator-bio{font-size:14px;color:var(--gray);line-height:1.7;max-width:500px;font-weight:300}
+.creator-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.ctag{background:var(--bg3);border:1px solid var(--border);color:var(--gray);font-size:11px;padding:4px 10px;border-radius:3px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+
+/* FOOTER */
+footer{position:relative;z-index:1;text-align:center;padding:40px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gray2);letter-spacing:1px}
+footer span{color:var(--cyan)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:900px){
+  nav{padding:16px 20px}.nav-links{display:none}
+  .hero{padding:100px 20px 60px;flex-direction:column}
+  .hero-right{position:relative;right:auto;top:auto;transform:none;margin-top:40px}
+  .hero-visual{width:100%}
+  .section,.full-section{padding:60px 20px}
+  .about-grid{grid-template-columns:1fr}
+  .chart-grid{grid-template-columns:1fr}
+  .gallery-grid{grid-template-columns:repeat(2,1fr)}
+  .creator-card{padding:24px}
+  .stats-bar{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="bg-grid"></div>
+<div class="bg-glow1"></div>
+<div class="bg-glow2"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">EP<span>SIS</span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#sensors">Sensors</a></li>
+    <li><a href="#alerts">Alerts</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#history">History</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#creator">Creator</a></li>
+  </ul>
+  <span class="nav-badge">v2.0</span>
+  <a id="dashBtn" href="#" onclick="openDash()" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#00e5ff;text-decoration:none;border:1px solid #1a2d42;padding:6px 14px;border-radius:3px;letter-spacing:1px;background:rgba(0,229,255,.08);transition:border-color .2s">LIVE DASHBOARD</a>
+  
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-tag">ESP32 · IoT · 8 Sensors · Real-time</div>
+    <h1>
+      <div class="line1">Enviro</div>
+      <div class="line2">Plus</div>
+      <div class="line3">Indoor System</div>
+    </h1>
+    <p class="hero-sub">A low-cost indoor environmental monitoring system tracking air quality, temperature, humidity, gas leaks, occupancy and more — built on ESP32 with live WiFi dashboard and smart tiered alerts.</p>
+    <div class="hero-btns">
+      <a href="#live" class="btn-primary">Live Dashboard</a>
+      <a href="#about" class="btn-outline">Learn More</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-visual">
+      <div style="margin-top:24px">
+        <div class="hv-sensor">
+          <span class="hv-label">TEMPERATURE</span>
+          <span><span class="hv-val">28.4</span><span class="hv-unit">°C</span></span>
+        </div>
+        <div class="hv-sensor">
+          <span class="hv-label">HUMIDITY</span>
+          <span><span class="hv-val">65</span><span class="hv-unit">%</span></span>
+        </div>
+        <div class="hv-sensor">
+          <span class="hv-label">CO2 / AQI</span>
+          <span><span class="hv-val">120</span><span class="hv-unit">ppm</span></span>
+        </div>
+        <div class="hv-sensor">
+          <span class="hv-label">GAS (MQ2)</span>
+          <span><span class="hv-val">45</span><span class="hv-unit">ppm</span></span>
+        </div>
+        <div class="hv-sensor">
+          <span class="hv-label">OCCUPANCY</span>
+          <span><span class="hv-val">2</span><span class="hv-unit">persons</span></span>
+        </div>
+        <div class="hv-sensor" style="border-bottom:none">
+          <span class="hv-label">STATUS</span>
+          <span style="display:flex;align-items:center;gap:6px"><span class="hv-dot"></span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green)">ONLINE</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar reveal">
+  <div class="stat-item"><div class="stat-num">8</div><div class="stat-label">Sensors</div></div>
+  <div class="stat-item"><div class="stat-num">3s</div><div class="stat-label">Update rate</div></div>
+  <div class="stat-item"><div class="stat-num">60s</div><div class="stat-label">Log interval</div></div>
+  <div class="stat-item"><div class="stat-num">50</div><div class="stat-label">Log entries</div></div>
+  <div class="stat-item"><div class="stat-num">WiFi</div><div class="stat-label">Live dashboard</div></div>
+</div>
+
+<!-- ABOUT -->
+<div class="section" id="about">
+  <div class="sec-tag">01 — About</div>
+  <h2 class="sec-title">What is EPSIS?</h2>
+  <p class="sec-sub">A complete indoor environment monitoring system built from scratch on a single ESP32 chip — no cloud subscription, no monthly fees.</p>
+  <div class="about-grid reveal">
+    <div class="desc-card">
+      This project builds a <strong>low-cost indoor environmental monitoring system</strong> using sensors including DHT11, BH1750, MQ-135, MQ-2, Sound sensor and dual IR sensors with an <strong>ESP32 microcontroller</strong>. It continuously tracks <strong>air quality, temperature, humidity, gas leaks, light intensity, sound levels and room occupancy</strong>. Data is displayed locally on an OLED screen and remotely via a <strong>WiFi web dashboard</strong>. The system triggers smart tiered alerts through a buzzer and LED — with <strong>different tones for different hazards</strong>. All readings are logged to onboard memory every 60 seconds, the person counter survives power cuts, and the dashboard is password protected. Designed with <strong>future AI-based enhancements</strong> in mind.
+    </div>
+    <div class="feature-list">
+      <div class="feature-item"><div class="fi-icon">🌡️</div><div><div class="fi-title">Environment sensing</div><div class="fi-desc">Temperature, humidity, CO2, gas, light and sound with trend arrows and min/max history.</div></div></div>
+      <div class="feature-item"><div class="fi-icon">👥</div><div><div class="fi-title">Smart occupancy</div><div class="fi-desc">Dual IR sequence detection counts people entering and exiting with no false triggers.</div></div></div>
+      <div class="feature-item"><div class="fi-icon">🚨</div><div><div class="fi-title">Tiered alerts</div><div class="fi-desc">4 distinct buzzer patterns. Gas alarm continues until air is safe below 550 ppm.</div></div></div>
+      <div class="feature-item"><div class="fi-icon">💾</div><div><div class="fi-title">Data logging + password</div><div class="fi-desc">Readings saved every 60s to ESP32 flash. Count survives restarts. Dashboard protected.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SENSORS -->
+<div class="full-section" id="sensors">
+<div class="inner">
+  <div class="sec-tag">02 — Components</div>
+  <h2 class="sec-title">Sensors and functions</h2>
+  <p class="sec-sub">Every sensor chosen for a specific purpose — here is exactly what each one does.</p>
+  <div class="sensor-grid reveal">
+    <div class="sensor-card"><div class="sc-icon">🌡️</div><div class="sc-name">DHT11</div><div class="sc-model">TEMP + HUMIDITY</div><div class="sc-desc">Reads temperature and humidity every 3 seconds.</div><div class="sc-func">Trend tracking, min/max history since boot. Buzzer if too hot.</div><div class="sc-pin">GPIO4 · 3.3V · 10kΩ pull-up</div></div>
+    <div class="sensor-card"><div class="sc-icon">💡</div><div class="sc-name">BH1750</div><div class="sc-model">LIGHT SENSOR</div><div class="sc-desc">Digital ambient light in lux (1–65535).</div><div class="sc-func">Categories: Dark, Dim, Normal, Bright, Very Bright. Trend arrow.</div><div class="sc-pin">GPIO21/22 · I2C · 3.3V</div></div>
+    <div class="sensor-card"><div class="sc-icon">🌫️</div><div class="sc-name">MQ135</div><div class="sc-model">CO2 / AQI</div><div class="sc-desc">Detects CO2, ammonia, benzene, smoke.</div><div class="sc-func">AQI: Good/Moderate/Unhealthy/Hazardous. Buzzer at 500Hz when high.</div><div class="sc-pin">GPIO34 · 5V analog</div></div>
+    <div class="sensor-card"><div class="sc-icon">💨</div><div class="sc-name">MQ2</div><div class="sc-model">GAS LEAK</div><div class="sc-desc">Detects LPG, methane, smoke, alcohol.</div><div class="sc-func">Continuous alarm — slow beep 550–600, fast above 600. Stops below 550.</div><div class="sc-pin">GPIO35 · 5V analog</div></div>
+    <div class="sensor-card"><div class="sc-icon">🔊</div><div class="sc-name">Sound sensor</div><div class="sc-model">NOISE LEVEL</div><div class="sc-desc">0–100% with estimated dB value (30–100dB).</div><div class="sc-func">Categories: Quiet/Normal/Loud/Very Loud. Buzzer at 2000Hz when very loud.</div><div class="sc-pin">GPIO36 · 5V analog</div></div>
+    <div class="sensor-card"><div class="sc-icon">👁️</div><div class="sc-name">IR × 2</div><div class="sc-model">DOOR DETECTION</div><div class="sc-desc">Entry/exit detection at bedroom door.</div><div class="sc-func">Sequence detection — order determines entry vs exit. No false counts.</div><div class="sc-pin">GPIO25 (in) · GPIO26 (out)</div></div>
+    <div class="sensor-card"><div class="sc-icon">📺</div><div class="sc-name">OLED 0.96"</div><div class="sc-model">LOCAL DISPLAY</div><div class="sc-desc">128×64 SSD1306 local screen.</div><div class="sc-func">Shows all readings, trends, AQI, occupancy and uptime. Works without WiFi.</div><div class="sc-pin">GPIO21/22 · I2C 0x3C · 3.3V</div></div>
+    <div class="sensor-card"><div class="sc-icon">🔔</div><div class="sc-name">Buzzer</div><div class="sc-model">AUDIO ALERTS</div><div class="sc-desc">Active buzzer with 4 distinct patterns.</div><div class="sc-func">Gas (default), CO2 (500Hz), noise (2000Hz). Priority order prevents overlap.</div><div class="sc-pin">GPIO27 · 3.3V</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ALERTS -->
+<div class="section" id="alerts">
+  <div class="sec-tag">03 — Alert System</div>
+  <h2 class="sec-title">Smart tiered alerts</h2>
+  <p class="sec-sub">Every alert has a unique sound, priority level and stop condition.</p>
+  <table class="alert-table reveal">
+    <thead><tr><th>Priority</th><th>Sensor</th><th>Condition</th><th>Sound</th><th>LED</th><th>Stops when</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--white)">1 — Critical</td><td>MQ2</td><td>Gas &gt; 600 ppm</td><td><span class="abadge ab1">Fast continuous</span></td><td>—</td><td>Gas &lt; 550</td></tr>
+      <tr><td style="color:var(--white)">2 — High</td><td>MQ2</td><td>550 &lt; Gas ≤ 600</td><td><span class="abadge ab2">Slow continuous</span></td><td>—</td><td>Gas &lt; 550</td></tr>
+      <tr><td style="color:var(--white)">3 — Medium</td><td>MQ135</td><td>CO2 &gt; 200 ppm</td><td><span class="abadge ab3">2× beep · 500 Hz</span></td><td>ON</td><td>CO2 &lt; 200</td></tr>
+      <tr><td style="color:var(--white)">4 — Low</td><td>Sound</td><td>Sound ≥ 75%</td><td><span class="abadge ab4">2× beep · 2000 Hz</span></td><td>—</td><td>5s cooldown</td></tr>
+      <tr><td style="color:var(--white)">5 — Info</td><td>IR sensors</td><td>Room empty</td><td>—</td><td><span class="abadge ab5">Blinks 10s</span></td><td>Someone enters</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- LIVE DASHBOARD -->
+<div class="full-section" id="live">
+<div class="inner">
+  <div class="sec-tag">04 — Live Data</div>
+  <h2 class="sec-title">Live dashboard</h2>
+  <p class="sec-sub">Enter your ESP32's IP address from Serial Monitor or OLED screen to connect.</p>
+  <div id="dashboard" class="reveal">
+    <div class="dash-top">
+      <div class="live-indicator"><span class="live-dot"></span> Live feed — updates every 3s</div>
+      <div class="ip-form">
+        <input class="ip-input" type="text" id="ipInput" placeholder="192.168.x.x"/>
+        <button class="connect-btn" onclick="connectESP()">CONNECT</button>
+      </div>
+    </div>
+    <div class="occ-card">
+      <div>
+        <div class="occ-counts">
+          <div><div class="occ-num" id="d-in" style="color:var(--green)">--</div><div class="occ-lbl">Inside now</div></div>
+          <div><div class="occ-num" id="d-en" style="color:var(--cyan)">--</div><div class="occ-lbl">Total entered</div></div>
+          <div><div class="occ-num" id="d-ex" style="color:var(--red)">--</div><div class="occ-lbl">Total exited</div></div>
+        </div>
+      </div>
+      <div class="empty-alert" id="roomAlert">⚠ ROOM EMPTY — TURN OFF LIGHTS</div>
+    </div>
+    <div class="dash-grid" id="dashGrid">
+      <div class="dash-status">Enter ESP32 IP above and click CONNECT</div>
+    </div>
+    <div class="uptime-bar" id="uptimeBar"></div>
+  </div>
+</div>
+</div>
+
+<!-- HISTORY + CHARTS -->
+<div class="section" id="history">
+  <div class="sec-tag">05 — Data History</div>
+  <h2 class="sec-title">Trends and graphs</h2>
+  <p class="sec-sub">Live charts built from readings collected since connection. Updates every 3 seconds.</p>
+  <div class="chart-grid reveal">
+    <div class="chart-card"><div class="chart-title">Temperature · °C</div><div class="chart-wrap"><canvas id="chartTemp"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Humidity · %</div><div class="chart-wrap"><canvas id="chartHum"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">CO2 / AQI · ppm</div><div class="chart-wrap"><canvas id="chartCo2"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Gas · ppm</div><div class="chart-wrap"><canvas id="chartGas"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Sound · %</div><div class="chart-wrap"><canvas id="chartSound"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Light · lx</div><div class="chart-wrap"><canvas id="chartLux"></canvas></div></div>
+  </div>
+  <div class="alert-log-section">
+    <div class="sec-tag" style="margin-top:50px">Alert history log</div>
+    <h3 style="font-size:24px;font-weight:700;letter-spacing:-1px;margin-bottom:8px">Live alert log</h3>
+    <p style="font-size:14px;color:var(--gray);margin-bottom:20px;font-weight:300">Alerts recorded automatically when thresholds exceeded.</p>
+    <div id="alertLog"><div class="no-alerts">// NO ALERTS YET — CONNECT TO ESP32</div></div>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<div class="full-section" id="gallery">
+<div class="inner">
+  <div class="sec-tag">06 — Gallery</div>
+  <h2 class="sec-title">Project photos</h2>
+  <p class="sec-sub">Click any slot to upload your project photos.</p>
+  <div class="gallery-grid reveal">
+    <div class="gallery-item" onclick="document.getElementById('iu0').click()"><img id="im0" src="" style="display:none"/><div class="gallery-placeholder" id="ph0"><div class="gp-icon">+</div><div class="gp-text">ADD PHOTO</div></div><input type="file" id="iu0" accept="image/*" style="display:none" onchange="loadImg(this,0)"/></div>
+    <div class="gallery-item" onclick="document.getElementById('iu1').click()"><img id="im1" src="" style="display:none"/><div class="gallery-placeholder" id="ph1"><div class="gp-icon">+</div><div class="gp-text">ADD PHOTO</div></div><input type="file" id="iu1" accept="image/*" style="display:none" onchange="loadImg(this,1)"/></div>
+    <div class="gallery-item" onclick="document.getElementById('iu2').click()"><img id="im2" src="" style="display:none"/><div class="gallery-placeholder" id="ph2"><div class="gp-icon">+</div><div class="gp-text">ADD PHOTO</div></div><input type="file" id="iu2" accept="image/*" style="display:none" onchange="loadImg(this,2)"/></div>
+    <div class="gallery-item" onclick="document.getElementById('iu3').click()"><img id="im3" src="" style="display:none"/><div class="gallery-placeholder" id="ph3"><div class="gp-icon">+</div><div class="gp-text">ADD PHOTO</div></div><input type="file" id="iu3" accept="image/*" style="display:none" onchange="loadImg(this,3)"/></div>
+    <div class="gallery-item" onclick="document.getElementById('iu4').click()"><img id="im4" src="" style="display:none"/><div class="gallery-placeholder" id="ph4"><div class="gp-icon">+</div><div class="gp-text">ADD PHOTO</div></div><input type="file" id="iu4" accept="image/*" style="display:none" onchange="loadImg(this,4)"/></div>
+    <div class="gallery-item" onclick="document.getElementById('iu5').click()"><img id="im5" src="" style="display:none"/><div class="gallery-placeholder" id="ph5"><div class="gp-icon">+</div><div class="gp-text">ADD PHOTO</div></div><input type="file" id="iu5" accept="image/*" style="display:none" onchange="loadImg(this,5)"/></div>
+  </div>
+</div>
+</div>
+
+<!-- CREATOR -->
+<div class="section" id="creator">
+  <div class="sec-tag">07 — Creator</div>
+  <h2 class="sec-title">About the creator</h2>
+  <div class="creator-card reveal">
+    <div class="creator-avatar">KS</div>
+    <div>
+      <div class="creator-name">Kartikey Srivastava</div>
+      <div class="creator-role">// Solo Developer · The Indian School</div>
+      <p class="creator-bio">Built EPSIS v2.0 as a complete solo project — from hardware wiring and sensor calibration to firmware, data logging, password protection and this web dashboard. Passionate about IoT, embedded systems and making smart environments accessible and affordable.</p>
+      <div class="creator-tags">
+        <span class="ctag">ESP32</span><span class="ctag">IoT</span><span class="ctag">Arduino C++</span>
+        <span class="ctag">SPIFFS</span><span class="ctag">Web Dashboard</span><span class="ctag">The Indian School</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>Built by <span>Kartikey Srivastava</span> &nbsp;·&nbsp; <span>EPSIS v2.0</span> — Enviro Plus Smart Indoor System &nbsp;·&nbsp; The Indian School</p>
+  <p style="margin-top:6px;opacity:.3">ESP32 · DHT11 · BH1750 · MQ135 · MQ2 · Sound · IR×2 · OLED · SPIFFS</p>
+</footer>
+
+<script>
+// Custom cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX - 4 + 'px';
+  cursor.style.top  = e.clientY - 4 + 'px';
+  ring.style.left   = e.clientX - 16 + 'px';
+  ring.style.top    = e.clientY - 16 + 'px';
+});
+
+// Open dashboard
+function openDash() {
+  const ip = prompt('Enter ESP32 IP address\n(shown on OLED screen):', '192.168.29.252');
+  if (ip) window.open('http://' + ip, '_blank');
+}
+
+// Scroll reveal
+const obs = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting) x.target.classList.add('visible'); }), {threshold:.1});
+document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+// Charts
+const chartOpts = (color) => ({
+  type:'line',
+  data:{labels:[],datasets:[{data:[],borderColor:color,backgroundColor:color+'18',borderWidth:1.5,pointRadius:2,pointBackgroundColor:color,tension:.4,fill:true}]},
+  options:{responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:'#4a6a8a',font:{size:9,family:'JetBrains Mono'}},grid:{color:'rgba(26,45,66,.5)'}},
+      y:{ticks:{color:'#4a6a8a',font:{size:9,family:'JetBrains Mono'}},grid:{color:'rgba(26,45,66,.5)'}}
+    }
+  }
+});
+
+const charts = {
+  temp:  new Chart(document.getElementById('chartTemp'),  chartOpts('#ff6b6b')),
+  hum:   new Chart(document.getElementById('chartHum'),   chartOpts('#00e5ff')),
+  co2:   new Chart(document.getElementById('chartCo2'),   chartOpts('#b06aff')),
+  gas:   new Chart(document.getElementById('chartGas'),   chartOpts('#ff8c00')),
+  sound: new Chart(document.getElementById('chartSound'), chartOpts('#ffd700')),
+  lux:   new Chart(document.getElementById('chartLux'),   chartOpts('#00ff88')),
+};
+
+function pushChart(chart, label, val) {
+  chart.data.labels.push(label);
+  chart.data.datasets[0].data.push(val);
+  if(chart.data.labels.length > 20) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
+  chart.update();
+}
+
+// Alert log
+let alerts = [];
+function addAlert(icon, msg, val) {
+  alerts.unshift({icon, msg, val, time: new Date().toLocaleTimeString()});
+  if(alerts.length > 15) alerts.pop();
+  document.getElementById('alertLog').innerHTML = alerts.length === 0
+    ? '<div class="no-alerts">// NO ALERTS YET</div>'
+    : alerts.map(a=>`<div class="alert-item"><div class="ai-icon">${a.icon}</div><div><div class="ai-msg">${a.msg}</div><div class="ai-val">${a.val}</div><div class="ai-time">${a.time}</div></div></div>`).join('');
+}
+
+// Dashboard
+let espIP = '', fi = null;
+function connectESP() {
+  espIP = document.getElementById('ipInput').value.trim();
+  if(!espIP) return;
+  document.getElementById('dashGrid').innerHTML = '<div class="dash-status">Connecting to ' + espIP + '...</div>';
+  if(fi) clearInterval(fi);
+  fetchData(); fi = setInterval(fetchData, 3000);
+}
+
+function fetchData() {
+  fetch('http://' + espIP + '/data')
+    .then(r => r.json()).then(d => render(d))
+    .catch(() => { document.getElementById('dashGrid').innerHTML = '<div class="dash-status" style="color:var(--red)">// CANNOT CONNECT — CHECK IP AND WIFI</div>'; });
+}
+
+function tr(t) {
+  return t==='up'?'<span class="trend-up"> ↑</span>':t==='down'?'<span class="trend-down"> ↓</span>':'<span class="trend-stable"> —</span>';
+}
+function bdg(l) {
+  const m={'Good':'bg-good','Moderate':'bg-mod','Unhealthy':'bg-dng','Hazardous':'bg-haz',
+    'Safe':'bg-good','Warning':'bg-wrn','Danger':'bg-dng','High':'bg-hi','Critical':'bg-haz',
+    'Quiet':'bg-good','Normal':'bg-good','Loud':'bg-mod','Very Loud':'bg-dng',
+    'Dark':'bg-mod','Dim':'bg-mod','Bright':'bg-good','Very Bright':'bg-wrn'};
+  return `<span class="dc-badge ${m[l]||'bg-good'}">${l}</span>`;
+}
+
+function render(d) {
+  document.getElementById('d-in').textContent = d.personCount ?? '--';
+  document.getElementById('d-en').textContent = d.totalEntered ?? '--';
+  document.getElementById('d-ex').textContent = d.totalExited ?? '--';
+  const ra = document.getElementById('roomAlert');
+  d.personCount===0 && d.totalEntered>0 ? ra.classList.add('show') : ra.classList.remove('show');
+  document.getElementById('uptimeBar').textContent = '// uptime: ' + (d.uptime||'--') + '  ·  last update: ' + new Date().toLocaleTimeString();
+
+  document.getElementById('dashGrid').innerHTML = `
+    <div class="dash-card"><div class="dc-label">Temperature ${tr(d.tempTrend)}</div><div class="dc-val" style="color:#ff6b6b">${d.temp}&deg;C</div><div class="dc-mm">↓${d.tempMin} ↑${d.tempMax}</div></div>
+    <div class="dash-card"><div class="dc-label">Humidity ${tr(d.humTrend)}</div><div class="dc-val" style="color:var(--cyan)">${d.humidity}%</div><div class="dc-mm">↓${d.humMin} ↑${d.humMax}</div></div>
+    <div class="dash-card"><div class="dc-label">CO2 / AQI ${tr(d.co2Trend)}</div><div class="dc-val" style="color:var(--purple)">${d.co2}</div><div class="dc-unit">ppm</div>${bdg(d.aqi)}<div class="dc-mm">↓${d.co2Min} ↑${d.co2Max}</div></div>
+    <div class="dash-card"><div class="dc-label">Gas (MQ2)</div><div class="dc-val" style="color:var(--orange)">${d.gas}</div><div class="dc-unit">ppm</div>${bdg(d.gasLevel)}</div>
+    <div class="dash-card"><div class="dc-label">Sound</div><div class="dc-val" style="color:var(--yellow)">${d.sound}%</div><div class="dc-unit">~${d.db} dB</div>${bdg(d.soundCat)}</div>
+    <div class="dash-card"><div class="dc-label">Light ${tr(d.luxTrend)}</div><div class="dc-val" style="color:var(--green)">${d.lux}</div><div class="dc-unit">lx</div>${bdg(d.lightCat)}</div>`;
+
+  const t = d.uptime || new Date().toLocaleTimeString();
+  pushChart(charts.temp,  t, parseFloat(d.temp));
+  pushChart(charts.hum,   t, parseFloat(d.humidity));
+  pushChart(charts.co2,   t, parseInt(d.co2));
+  pushChart(charts.gas,   t, parseInt(d.gas));
+  pushChart(charts.sound, t, parseInt(d.sound));
+  pushChart(charts.lux,   t, parseInt(d.lux));
+
+  if(d.gas > 600)      addAlert('🚨','Critical gas leak!','MQ2: '+d.gas+' ppm');
+  else if(d.gas > 550) addAlert('⚠️','Gas level high','MQ2: '+d.gas+' ppm');
+  if(d.co2 > 200)      addAlert('🌫️','Air quality unhealthy','CO2: '+d.co2+' ppm — '+d.aqi);
+  if(d.sound >= 75)    addAlert('🔊','Very loud noise','Sound: '+d.sound+'% (~'+d.db+' dB)');
+  if(d.personCount===0 && d.totalEntered>0) addAlert('💡','Room empty!','Turn off the lights');
+}
+
+function loadImg(input, idx) {
+  const r = new FileReader();
+  r.onload = e => {
+    document.getElementById('im'+idx).src = e.target.result;
+    document.getElementById('im'+idx).style.display = 'block';
+    document.getElementById('ph'+idx).style.display = 'none';
+  };
+  r.readAsDataURL(input.files[0]);
+}
+</script>
+</body>
+</html>
